@@ -1,0 +1,6 @@
+entity.skosmos_host.add_form:
+  route_name: entity.skosmos_host.add_form
+  title: 'Add Host'
+  appears_on:
+    - entity.skosmos_host.collection
+

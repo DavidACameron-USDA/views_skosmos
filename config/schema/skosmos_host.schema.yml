@@ -1,0 +1,16 @@
+views_skosmos.skosmos_host.*:
+  type: config_entity
+  label: 'Skosmos Host config'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    label:
+      type: label
+      label: 'Label'
+    uuid:
+      type: string
+    uri:
+      type: string
+      label: 'URI'
+

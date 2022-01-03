@@ -1,0 +1,6 @@
+entity.skosmos_host.collection:
+  title: 'Skosmos API Hosts'
+  route_name: entity.skosmos_host.collection
+  description: 'Skosmos API Hosts'
+  parent: system.admin_config_services
+
