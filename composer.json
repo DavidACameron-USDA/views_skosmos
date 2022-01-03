@@ -1,0 +1,8 @@
+{
+    "name": "dcameron/views_skosmos",
+    "type": "drupal-module",
+    "description": "A Drupal module for displaying data from a Skosmos API with Views",
+    "homepage": "https://github.com/dcameron/views_skosmos",
+    "minimum-stability": "dev"
+}
+
