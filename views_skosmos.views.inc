@@ -99,7 +99,7 @@ function views_skosmos_views_data() {
       'title' => t('Query'),
       'help' => t('The term to search for'),
       'filter' => [
-        'id' => 'string',
+        'id' => 'views_skosmos_query',
       ],
     ];
   }
