@@ -33,6 +33,13 @@ function views_skosmos_views_data() {
         'id' => 'standard',
       ],
     ];
+    $table['type'] = [
+      'title' => t('Type'),
+      'help' => t('The type of data in the concept'),
+      'field' => [
+        'id' => 'views_skosmos_list',
+      ],
+    ];
     $table['pref_label'] = [
       'title' => t('Preferred Label'),
       'help' => t('The preferred label of the concept'),
