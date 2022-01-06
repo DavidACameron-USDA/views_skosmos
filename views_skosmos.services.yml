@@ -1,0 +1,5 @@
+services:
+  views_skosmos.client_factory:
+    class: Drupal\views_skosmos\ClientFactory
+    arguments: ['@http_client']
+

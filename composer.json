@@ -4,5 +4,8 @@
     "description": "A Drupal module for displaying data from a Skosmos API with Views",
     "homepage": "https://github.com/dcameron/views_skosmos",
     "minimum-stability": "dev"
+    "require": {
+        "dcameron/skosmos_client": "dev-main"
+    }
 }
 
