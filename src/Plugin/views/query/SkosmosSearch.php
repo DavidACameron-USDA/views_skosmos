@@ -153,6 +153,13 @@ class SkosmosSearch extends QueryPluginBase {
     $view->total_rows = 0;
     $view->execute_time = 0;
 
+    // 'query' is a required parameter to this endpoint. If it's missing a 400
+    // error is returned. There's no need to hit the endpoint in this case and
+    // we don't want to log unnecessary exceptions. So just fail silently.
+    if (empty($view->build_info['query']['query'])) {
+      return;
+    }
+
     // Arrays with string keys cannot be unpacked, so remove them.
     $count_args = array_values($view->build_info['count_query']);
     $args = array_values($view->build_info['query']);
