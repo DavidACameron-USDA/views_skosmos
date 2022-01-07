@@ -107,7 +107,20 @@ class SkosmosSearch extends QueryPluginBase {
   /**
    * {@inheritdoc}
    */
-  public function execute(ViewExecutable $view) {
+  public function build(ViewExecutable $view) {
+    $view->initPager();
+    $view->pager->query();
+
+    $view->build_info['query'] = $this->query();
+    $view->build_info['count_query'] = $this->query(TRUE);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function query($get_count = FALSE) {
+    // SQL-based queries would actually build a query object here. Instead,
+    // we'll build the arguments for the client function.
     $args = self::DEFAULT_ARGUMENTS;
     foreach ($this->where as $group) {
       foreach ($group['conditions'] as $condition ) {
@@ -119,9 +132,52 @@ class SkosmosSearch extends QueryPluginBase {
       }
     }
 
-    $index = 0;
+    if (!$get_count) {
+      // Trigger the setting of pagination variables.
+      if (!empty($this->limit)) {
+        $args['maxhits'] = $this->limit;
+      }
+      if (!empty($this->offset)) {
+        $args['offset'] = $this->offset;
+      }
+    }
+
+    return $args;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function execute(ViewExecutable $view) {
+    $view->result = [];
+    $view->total_rows = 0;
+    $view->execute_time = 0;
+
     // Arrays with string keys cannot be unpacked, so remove them.
-    $args = array_values($args);
+    $count_args = array_values($view->build_info['count_query']);
+    $args = array_values($view->build_info['query']);
+
+    // Execute the count query which returns all items so Views can set up the
+    // pager.
+    try {
+      /** @var \SkosmosClient\Model\SearchResults $results */
+      $count_results = $this->globalClient->searchGet(...$count_args);
+    }
+    catch (ApiException $e) {
+      $this->messenger()->addError($e->getMessage());
+      return;
+    }
+    $view->pager->total_items = count($count_results->getResults());
+    if (!empty($view->pager->options['offset'])) {
+      $view->pager->total_items -= $view->pager->options['offset'];
+    }
+    $view->total_rows = $view->pager->total_items;
+
+    // Execute the actual query with the limit and offset to get the records
+    // that will be displayed on the page.
+    $view->pager->preExecute($this->query);
+    $index = 0;
+    $start = microtime(TRUE);
     try {
       /** @var \SkosmosClient\Model\SearchResults $results */
       $results = $this->globalClient->searchGet(...$args);
@@ -130,7 +186,6 @@ class SkosmosSearch extends QueryPluginBase {
       // @todo Handle exceptions properly.
       return;
     }
-
     /** @var \SkosmosClient\Model\SearchResult $result */
     foreach ($results->getResults() as $result) {
       $row = [];
@@ -147,6 +202,10 @@ class SkosmosSearch extends QueryPluginBase {
 
       $view->result[] = new ResultRow($row);
     }
+    $view->execute_time = microtime(TRUE) - $start;
+
+    $view->pager->postExecute($view->result);
+    $view->pager->updatePageInfo();
   }
 
   /**
