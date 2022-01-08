@@ -9,6 +9,7 @@ use Drupal\views_skosmos\ClientFactory;
 use Drupal\views_skosmos\ViewsHelperTrait;
 use Drupal\views_skosmos\Entity\SkosmosHost;
 use SkosmosClient\ApiException;
+use SkosmosClient\Model\SearchResults;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -133,7 +134,6 @@ class SkosmosSearch extends QueryPluginBase {
     }
 
     if (!$get_count) {
-      // Trigger the setting of pagination variables.
       if (!empty($this->limit)) {
         $args['maxhits'] = $this->limit;
       }
@@ -160,39 +160,54 @@ class SkosmosSearch extends QueryPluginBase {
       return;
     }
 
-    // Arrays with string keys cannot be unpacked, so remove them.
-    $count_args = array_values($view->build_info['count_query']);
-    $args = array_values($view->build_info['query']);
-
     // Execute the count query which returns all items so Views can set up the
     // pager.
-    try {
-      /** @var \SkosmosClient\Model\SearchResults $results */
-      $count_results = $this->globalClient->searchGet(...$count_args);
-    }
-    catch (ApiException $e) {
-      $this->messenger()->addError($e->getMessage());
-      return;
-    }
-    $view->pager->total_items = count($count_results->getResults());
+    $view->pager->total_items = $this->getRowCount($view->build_info['count_query']);
     if (!empty($view->pager->options['offset'])) {
       $view->pager->total_items -= $view->pager->options['offset'];
     }
     $view->total_rows = $view->pager->total_items;
 
+    $view->pager->preExecute($this->query);
+
     // Execute the actual query with the limit and offset to get the records
     // that will be displayed on the page.
-    $view->pager->preExecute($this->query);
-    $index = 0;
     $start = microtime(TRUE);
-    try {
-      /** @var \SkosmosClient\Model\SearchResults $results */
-      $results = $this->globalClient->searchGet(...$args);
-    }
-    catch (ApiException $e) {
-      // @todo Handle exceptions properly.
-      return;
-    }
+    $view->result = $this->getRows($view->build_info['query']);
+    $view->execute_time = microtime(TRUE) - $start;
+
+    $view->pager->postExecute($view->result);
+    $view->pager->updatePageInfo();
+  }
+
+  /**
+   * Returns the number of rows in the results.
+   *
+   * @param mixed[] $args
+   *   Arguments for the query function that will be executed.
+   *
+   * @return int
+   *   The number of results returned by the query.
+   */
+  protected function getRowCount($args): int {
+    $results = $this->executeQuery($args);
+    return count($results->getResults());
+  }
+
+  /**
+   * Returns an array of results from the query.
+   *
+   * @param mixed[] $args
+   *   Arguments for the query function that will be executed.
+   *
+   * @return ResultRow[]
+   *   The array of results.
+   */
+  protected function getRows($args): array {
+    $rows = [];
+    $index = 0;
+
+    $results = $this->executeQuery($args);
     /** @var \SkosmosClient\Model\SearchResult $result */
     foreach ($results->getResults() as $result) {
       $row = [];
@@ -207,12 +222,34 @@ class SkosmosSearch extends QueryPluginBase {
       $row['notation'] = $result->getNotation();
       $row['index'] = $index++;
 
-      $view->result[] = new ResultRow($row);
+      $rows[] = new ResultRow($row);
     }
-    $view->execute_time = microtime(TRUE) - $start;
 
-    $view->pager->postExecute($view->result);
-    $view->pager->updatePageInfo();
+    return $rows;
+  }
+
+  /**
+   * Queries the API's /search endpoint.
+   *
+   * @param mixed[] $args
+   *   Arguments for the query function that will be executed.
+   *
+   * @return SearchResults
+   *   The results of the query.
+   */
+  protected function executeQuery($args): SearchResults {
+    // Arrays with string keys cannot be unpacked, so remove them.
+    $args = array_values($args);
+    try {
+      /** @var \SkosmosClient\Model\SearchResults $results */
+      $results = $this->globalClient->searchGet(...$args);
+    }
+    catch (ApiException $e) {
+      // @todo Log exceptions.
+      // Return an empty SearchResults object.
+      return new SearchResults();
+    }
+    return $results;
   }
 
   /**
