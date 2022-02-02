@@ -25,6 +25,7 @@ function views_skosmos_views_data() {
       'title' => t('Skosmos @name /search', ['@name' => $host->label()]),
       'help' => t('Search concepts and collections by query term'),
       'query_id' => 'views_skosmos_search',
+      'host_uri' => $host->getUri(),
     ];
     $table['uri'] = [
       'title' => t('URI'),

@@ -1,29 +1,22 @@
 <?php
+
 namespace Drupal\views_skosmos\Plugin\views\query;
 
-use Drupal\views\Plugin\views\display\DisplayPluginBase;
-use Drupal\views\Plugin\views\query\QueryPluginBase;
 use Drupal\views\ResultRow;
 use Drupal\views\ViewExecutable;
-use Drupal\views_skosmos\ClientFactory;
-use Drupal\views_skosmos\ViewsHelperTrait;
-use Drupal\views_skosmos\Entity\SkosmosHost;
 use SkosmosClient\ApiException;
 use SkosmosClient\Model\SearchResults;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Query plugin which wraps calls to a Skosmos API /search endpoint.
+ * Query plugin which searches a SKOS Vocabulary.
  *
  * @ViewsQuery(
  *   id = "views_skosmos_search",
- *   title = @Translation("Skosmos /search"),
- *   help = @Translation("Query a Skosmos /search endpoint.")
+ *   title = @Translation("Skosmos Search"),
+ *   help = @Translation("Search a SKOS Vocabulary")
  * )
  */
-class SkosmosSearch extends QueryPluginBase {
-
-  use ViewsHelperTrait;
+class SkosmosSearch extends SkosmosQueryPluginBase {
 
   /**
    * Default function arguments for the searchGet method.
@@ -43,67 +36,6 @@ class SkosmosSearch extends QueryPluginBase {
     'fields' => NULL,
     'unique' => NULL,
   ];
-
-  /**
-   * The prefix of the base table of this query.
-   *
-   * @var string
-   */
-  const TABLE_PREFIX = 'skosmos_search_';
-
-  /**
-   * The views_skosmos.client_factory service.
-   *
-   * @var \Drupal\views_skosmos\ClientFactory
-   */
-  protected $clientFactory;
-
-  /**
-   * A Skosmos API global methods client.
-   *
-   * @var \SkosmosClient\Api\GlobalMethodsApi
-   */
-  protected $globalClient;
-
-  /**
-   * Constructs a SkosmosSearch object.
-   *
-   * @param array $configuration
-   *   A configuration array containing information about the plugin instance.
-   * @param string $plugin_id
-   *   The plugin_id for the plugin instance.
-   * @param mixed $plugin_definition
-   *   The plugin implementation definition.
-   * @param \Drupal\views_skosmos\ClientFactory $client_factory
-   *   The views_skosmos.client_factory service.
-   */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, ClientFactory $client_factory) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-
-    $this->clientFactory = $client_factory;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('views_skosmos.client_factory'),
-    );
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
-    parent::init($view, $display, $options);
-
-    $host = static::getHostFromView($view, self::TABLE_PREFIX);
-    $this->globalClient = $this->clientFactory->getGlobalClient($host->getUri());
-  }
 
   /**
    * {@inheritdoc}
@@ -242,7 +174,7 @@ class SkosmosSearch extends QueryPluginBase {
     $args = array_values($args);
     try {
       /** @var \SkosmosClient\Model\SearchResults $results */
-      $results = $this->globalClient->searchGet(...$args);
+      $results = $this->getGlobalClient()->searchGet(...$args);
     }
     catch (ApiException $e) {
       // @todo Log exceptions.
@@ -250,48 +182,6 @@ class SkosmosSearch extends QueryPluginBase {
       return new SearchResults();
     }
     return $results;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function addWhere($group, $field, $value = NULL, $operator = NULL) {
-    // Ensure all variants of 0 are actually 0. Thus '', 0 and NULL are all
-    // the default group.
-    if (empty($group)) {
-      $group = 0;
-    }
-    // Check for a group.
-    if (!isset($this->where[$group])) {
-      $this->setWhereGroup('AND', $group);
-    }
-    $this->where[$group]['conditions'][] = [
-      'field' => $field,
-      'value' => $value,
-      // @todo Do we need the operator since we aren't working with SQL?
-      'operator' => $operator,
-    ];
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function ensureTable($table, $relationship = NULL) {
-    return '';
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function addField($table, $field, $alias = '', $params = array()) {
-    return $field;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function addOrderBy($table, $field = NULL, $order = 'ASC', $alias = '', $params = []) {
-
   }
 
 }
