@@ -182,7 +182,7 @@ class Search extends SkosmosQueryPluginBase {
       $results = $this->getGlobalClient()->searchGet(...$args);
     }
     catch (ApiException $e) {
-      $this->messenger()->addError($e->getMessage());
+      // @todo Log exceptions.
       // Return an empty SearchResults object.
       return new SearchResults();
     }

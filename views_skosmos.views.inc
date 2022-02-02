@@ -69,17 +69,20 @@ function views_skosmos_views_data() {
         'id' => 'standard',
       ],
       'filter' => [
-        'id' => 'string',
+        'id' => 'language',
       ],
     ];
-    $table['vocab'] = [
+    $table['vocid'] = [
       'title' => t('Vocabulary'),
-      'help' => t('The vocabulary in which the concept is located'),
+      'help' => t('A SKOS vocabulary ID'),
       'field' => [
         'id' => 'standard',
       ],
       'filter' => [
         'id' => 'string',
+      ],
+      'argument' => [
+        'id' => 'standard',
       ],
     ];
     $table['exvocab'] = [
