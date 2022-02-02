@@ -16,7 +16,7 @@ use SkosmosClient\Model\SearchResults;
  *   help = @Translation("Search a SKOS Vocabulary")
  * )
  */
-class SkosmosSearch extends SkosmosQueryPluginBase {
+class Search extends SkosmosQueryPluginBase {
 
   /**
    * Default function arguments for the searchGet method.
@@ -27,7 +27,7 @@ class SkosmosSearch extends SkosmosQueryPluginBase {
     'query' => '',
     'lang' => NULL,
     'labellang' => NULL,
-    'vocab' => NULL,
+    'vocid' => NULL,
     'type' => NULL,
     'parent' => NULL,
     'group' => NULL,
@@ -59,6 +59,11 @@ class SkosmosSearch extends SkosmosQueryPluginBase {
       foreach ($group['conditions'] as $condition ) {
         // Remove periods from the beginning of field names.
         $field_name = ltrim($condition['field'], '.');
+        if ($field_name == 'lang') {
+          // @todo This is a temporary fix so that a single-language filter
+          // doesn't have to be developed right now.
+          $condition['value'] = $condition['value'][0] == '***LANGUAGE_language_interface***' ? \Drupal::languageManager()->getCurrentLanguage()->getId() : $condition['value'][0];
+        }
         if (array_key_exists($field_name, $args)) {
           $args[$field_name] = $condition['value'];
         }
@@ -149,7 +154,7 @@ class SkosmosSearch extends SkosmosQueryPluginBase {
       $row['alt_label'] = $result->getAltLabel();
       $row['hidden_label'] = $result->getHiddenLabel();
       $row['lang'] = $result->getLang();
-      $row['vocab'] = $result->getVocab();
+      $row['vocid'] = $result->getVocab();
       $row['exvocab'] = $result->getExvocab();
       $row['notation'] = $result->getNotation();
       $row['index'] = $index++;
@@ -177,7 +182,7 @@ class SkosmosSearch extends SkosmosQueryPluginBase {
       $results = $this->getGlobalClient()->searchGet(...$args);
     }
     catch (ApiException $e) {
-      // @todo Log exceptions.
+      $this->messenger()->addError($e->getMessage());
       // Return an empty SearchResults object.
       return new SearchResults();
     }
