@@ -17,6 +17,45 @@ function views_skosmos_views_data() {
   $data = [];
 
   foreach (SkosmosHost::loadMultiple() as $host) {
+    // Add the /vocabularies base table.
+    $key = 'skosmos_vocabularies_' . $host->id();
+    $table = &$data[$key];
+    $table['table']['group'] = t('Skosmos @name', ['@name' => $host->label()]);
+    $table['table']['base'] = [
+      'title' => t('Skosmos @name /vocabularies', ['@name' => $host->label()]),
+      'help' => t('List all vocabularies'),
+      'query_id' => 'views_skosmos_vocabularies',
+      'host_uri' => $host->getUri(),
+    ];
+    $table['uri'] = [
+      'title' => t('URI'),
+      'help' => t('The URI of a vocabulary'),
+      'field' => [
+        'id' => 'standard',
+      ],
+    ];
+    $table['id'] = [
+      'title' => t('ID'),
+      'help' => t('The ID of a vocabulary'),
+      'field' => [
+        'id' => 'standard',
+      ],
+    ];
+    $table['title'] = [
+      'title' => t('Title'),
+      'help' => t('The title of a vocabulary'),
+      'field' => [
+        'id' => 'standard',
+      ],
+    ];
+    $table['lang'] = [
+      'title' => t('Language'),
+      'help' => t('The language of the vocabulary'),
+      'filter' => [
+        'id' => 'language',
+      ],
+    ];
+
     // Add the /search base table.
     $key = 'skosmos_search_' . $host->id();
     $table = &$data[$key];
