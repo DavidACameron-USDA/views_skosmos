@@ -288,6 +288,41 @@ function views_skosmos_views_data() {
         'id' => 'language',
       ],
     ];
+
+    // Queries the /{vocab}/broaderTransitive base table.
+    $key = 'skosmos_concept_breadcrumbs_' . $host->id();
+    $table = &$data[$key];
+    $table['table']['group'] = t('Skosmos @name', ['@name' => $host->label()]);
+    $table['table']['base'] = [
+      'title' => t('Skosmos @name concept breadcrumbs', ['@name' => $host->label()]),
+      'help' => t('Concept breadcrumbs'),
+      'query_id' => 'views_skosmos_concept_breadcrumbs',
+      'host_uri' => $host->getUri(),
+    ];
+    $table['vocid'] = [
+      'title' => t('Vocabulary'),
+      'help' => t('A SKOS vocabulary ID'),
+      'filter' => [
+        'id' => 'string',
+      ],
+      'argument' => [
+        'id' => 'standard',
+      ],
+    ];
+    $table['uri'] = [
+      'title' => t('URI'),
+      'help' => t('The URI of the concept'),
+      'argument' => [
+        'id' => 'concept_uri',
+      ],
+    ];
+    $table['breadcrumbs'] = [
+      'title' => t('Breadcrumbs'),
+      'help' => t('Breadcrumbs derived from the broader concepts'),
+      'field' => [
+        'id' => 'views_skosmos_label_list',
+      ],
+    ];
   }
 
   return $data;
