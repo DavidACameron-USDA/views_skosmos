@@ -1,8 +1,9 @@
 <?php
 
-namespace Drupal\views_skosmos\Plugin\views\argument;
+namespace Drupal\views_skosmos\Plugin\views\argument_validator;
 
-use Drupal\views\Plugin\views\argument\Standard;
+use Drupal\Core\Plugin\Context\ContextDefinition;
+use Drupal\views\Plugin\views\argument_validator\ArgumentValidatorPluginBase;
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\views\ViewExecutable;
 use Drupal\views_skosmos\ClientFactory;
@@ -11,11 +12,16 @@ use SkosmosClient\ApiException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Argument handler to accept a Concept URI.
+ * Validate whether an argument is a Concept URI or not.
  *
- * @ViewsArgument("concept_uri")
+ * @ingroup views_argument_validate_plugins
+ *
+ * @ViewsArgumentValidator(
+ *   id = "views_skosmos_concept_uri",
+ *   title = @Translation("Concept URI")
+ * )
  */
-class ConceptUri extends Standard {
+class ConceptUri extends ArgumentValidatorPluginBase {
 
   use ViewsHelperTrait;
 
@@ -77,17 +83,21 @@ class ConceptUri extends Standard {
   /**
    * {@inheritdoc}
    */
-  public function title() {
-    // @todo This is a hack that won't work with all language filter options.
-    $lang = \Drupal::languageManager()->getCurrentLanguage()->getId();
+  public function validateArgument($argument) {
     try {
-      $result = $this->globalClient->labelGet($this->argument, $lang);
-      return $result->getPrefLabel();
+      $this->globalClient->dataGetWithHttpInfo($argument);
     }
     catch (ApiException $e) {
-      // Something went wrong with the API. Display the default.
-      return '';
+      return FALSE;
     }
+    return TRUE;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getContextDefinition() {
+    return new ContextDefinition('string', $this->argument->adminLabel(), FALSE);
   }
 
 }

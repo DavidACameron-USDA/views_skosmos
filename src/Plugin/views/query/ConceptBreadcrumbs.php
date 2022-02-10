@@ -131,9 +131,8 @@ class ConceptBreadcrumbs extends SkosmosQueryPluginBase {
       $results = $this->getConceptClient()->vocidBroaderTransitiveGet(...$args);
     }
     catch (ApiException $e) {
-      $this->messenger()->addError($e->getMessage());
-      // Return an empty RdfGraph object.
-      return new RdfGraph();
+      // Return an empty BroaderTransitiveResult object.
+      return new BroaderTransitiveResult();
     }
     return $results;
   }

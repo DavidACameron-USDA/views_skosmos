@@ -105,7 +105,7 @@ class Concept extends SkosmosQueryPluginBase {
     try {
       $concept = $result->getConcept();
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       return [];
     }
 
@@ -149,7 +149,6 @@ class Concept extends SkosmosQueryPluginBase {
       $results = $this->getVocabClient()->vocidDataGet(...$args);
     }
     catch (ApiException $e) {
-      $this->messenger()->addError($e->getMessage());
       // Return an empty RdfGraph object.
       return new RdfGraph();
     }
