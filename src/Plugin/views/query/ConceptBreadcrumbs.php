@@ -199,16 +199,6 @@ class ConceptBreadcrumbs extends SkosmosQueryPluginBase {
       if (isset($bTresult[$uri])) {
         $path = array_merge($path, array(new Label($uri, $bTresult[$uri]['label'])));
       }
-
-      $index = 1;
-      $length = sizeof($path);
-      $limit = $length - 5;
-      foreach ($path as $crumb) {
-        if ($length > 5 && $index > $length - $limit) { // displays 5 concepts closest to the concept.
-          $crumb->setLabel('...');
-        }
-        $index++;
-      }
       $crumbs[] = array_reverse($path);
     }
     return $crumbs;
