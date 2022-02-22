@@ -121,7 +121,7 @@ class Vocabularies extends SkosmosQueryPluginBase {
     catch (ApiException $e) {
       $this->messenger()->addError($e->getMessage());
       // Return an empty Vocabulary object.
-      return new VocabuaryList();
+      return new VocabularyList();
     }
     return $results;
   }
