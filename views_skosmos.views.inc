@@ -145,6 +145,13 @@ function views_skosmos_views_data() {
         'id' => 'views_skosmos_query',
       ],
     ];
+    $table['unique'] = [
+      'title' => t('Unique'),
+      'help' => t('Return concepts only once instead of all the ways it could match (for example both via prefLabel and altLabel)'),
+      'filter' => [
+        'id' => 'boolean',
+      ],
+    ];
 
     // Add the /{vocab}/data base table.
     $key = 'skosmos_concept_' . $host->id();
