@@ -1,6 +1,5 @@
 name: 'Views Skosmos'
 type: module
 description: 'A Drupal module for displaying data from a Skosmos API with Views'
-core_version_requirement: 9.x
+core_version_requirement: ^9 || ^10
 package: 'Other'
-
